@@ -161,6 +161,29 @@ impl AudioRecorder {
         let resampled = resample(&mono, self.source_sample_rate, 16000);
         println!("[Rawi] Resampled to {} samples at 16kHz", resampled.len());
 
+        if resampled.is_empty() {
+            return Err("Recording too short. No audio captured.".to_string());
+        }
+
+        let duration_sec = resampled.len() as f32 / 16000.0;
+        let rms = (resampled.iter().map(|s| s * s).sum::<f32>() / resampled.len() as f32).sqrt();
+        let max_amp = resampled.iter().map(|s| s.abs()).fold(0.0_f32, |a, b| a.max(b));
+        println!(
+            "[Rawi] Audio duration: {:.2}s, RMS: {:.6}, max amplitude: {:.6}",
+            duration_sec, rms, max_amp
+        );
+
+        if duration_sec < 0.3 {
+            return Err("Recording too short. Hold the hotkey a bit longer.".to_string());
+        }
+
+        // Threshold: ~-46 dBFS peak or ~-54 dBFS RMS is treated as silence.
+        if max_amp < 0.005 && rms < 0.002 {
+            return Err(
+                "No speech detected. Please check your microphone is not muted and the correct device is selected.".to_string(),
+            );
+        }
+
         let spec = WavSpec {
             channels: 1,
             sample_rate: 16000,

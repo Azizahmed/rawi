@@ -8,7 +8,7 @@ Rawi is a Windows desktop dictation app built with Tauri, Rust, TypeScript, and 
 - Local Whisper transcription through the bundled `whisper.cpp` sidecar.
 - Groq Cloud transcription with a locally stored API key and model id.
 - Mixed Arabic and English speech mode for same-sentence dictation without translation.
-- Configurable global hotkey with presets for `Ctrl + Alt + Space` and `Ctrl + Shift + Space`.
+- Configurable global hotkey with presets for `Ctrl + Space`, `Ctrl + Alt + Space`, and `Ctrl + Shift + Space`.
 - Launch-at-startup support on Windows, enabled by default and controlled from Settings.
 - Microphone, paste delay, audio device, and transcription engine settings.
 
@@ -68,7 +68,7 @@ Rawi stores settings locally on the machine. The settings screen includes:
 - Recording: hotkey presets, custom hotkey capture, and recording behavior.
 - About: app information.
 
-The default hotkey is `Ctrl + Shift + Space`. Modifier-only shortcuts such as only `Ctrl + Alt` or only `Ctrl + Shift` are not valid global shortcuts, so Rawi uses those modifier combinations with `Space`.
+The default hotkey is `Ctrl + Space`. Modifier-only shortcuts such as only `Ctrl`, `Ctrl + Alt`, or `Ctrl + Shift` are not valid global shortcuts, so Rawi uses those modifier combinations with `Space`.
 
 ## Startup Behavior
 

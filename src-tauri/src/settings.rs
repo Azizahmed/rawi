@@ -32,7 +32,7 @@ impl Default for Settings {
             groq_api_key: String::new(),
             groq_model: "whisper-large-v3".to_string(),
             recording_mode: "toggle".to_string(),
-            hotkey: "Control+Shift+Space".to_string(),
+            hotkey: "Control+Space".to_string(),
             launch_at_startup: true,
         }
     }
@@ -74,7 +74,7 @@ mod tests {
         assert_eq!(settings.groq_api_key, "");
         assert_eq!(settings.groq_model, "whisper-large-v3");
         assert_eq!(settings.recording_mode, "toggle");
-        assert_eq!(settings.hotkey, "Control+Shift+Space");
+        assert_eq!(settings.hotkey, "Control+Space");
         assert!(settings.launch_at_startup);
     }
 
