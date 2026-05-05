@@ -33,7 +33,8 @@ pub fn list_microphones() -> Vec<MicDevice> {
 }
 
 /// Wrapper to make cpal::Stream usable across threads.
-/// SAFETY: cpal::Stream on macOS (CoreAudio) is thread-safe in practice;
+/// SAFETY: cpal::Stream is thread-safe in practice on all supported platforms
+/// (macOS CoreAudio, Windows WASAPI, Linux ALSA/PulseAudio);
 /// we only access it behind a Mutex to start/stop recording.
 struct SendStream(#[allow(dead_code)] cpal::Stream);
 unsafe impl Send for SendStream {}

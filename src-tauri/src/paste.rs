@@ -83,6 +83,18 @@ fn simulate_paste_shortcut() -> Result<(), String> {
         send_windows_paste_shortcut(&mut enigo).map_err(|e| e.to_string())?;
     }
 
+    #[cfg(target_os = "linux")]
+    {
+        // Try enigo first (works on X11 and Wayland with libinput)
+        match simulate_linux_paste_enigo() {
+            Ok(()) => {}
+            Err(_) => {
+                // Fallback to xdotool (X11 only, but widely available)
+                simulate_linux_paste_xdotool()?;
+            }
+        }
+    }
+
     Ok(())
 }
 
@@ -96,6 +108,35 @@ where
     keyboard.key(Key::Control, Direction::Press)?;
     keyboard.key(Key::V, Direction::Click)?;
     keyboard.key(Key::Control, Direction::Release)?;
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn send_linux_paste_shortcut<K>(keyboard: &mut K) -> enigo::InputResult<()>
+where
+    K: enigo::Keyboard,
+{
+    use enigo::{Direction, Key};
+
+    keyboard.key(Key::Control, Direction::Press)?;
+    keyboard.key(Key::V, Direction::Click)?;
+    keyboard.key(Key::Control, Direction::Release)?;
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+fn simulate_linux_paste_enigo() -> Result<(), String> {
+    use enigo::{Enigo, Settings};
+    let mut enigo = Enigo::new(&Settings::default()).map_err(|e| e.to_string())?;
+    send_linux_paste_shortcut(&mut enigo).map_err(|e| e.to_string())
+}
+
+#[cfg(target_os = "linux")]
+fn simulate_linux_paste_xdotool() -> Result<(), String> {
+    std::process::Command::new("xdotool")
+        .args(["key", "--clearmodifiers", "ctrl+v"])
+        .output()
+        .map_err(|e| format!("Failed to simulate paste via xdotool: {}", e))?;
     Ok(())
 }
 
@@ -180,6 +221,44 @@ mod tests {
         let mut keyboard = FakeKeyboard { events: Vec::new() };
 
         send_windows_paste_shortcut(&mut keyboard).unwrap();
+
+        assert_eq!(
+            keyboard.events,
+            vec![
+                (Key::Control, Direction::Press),
+                (Key::V, Direction::Click),
+                (Key::Control, Direction::Release),
+            ]
+        );
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn linux_paste_shortcut_uses_ctrl_v() {
+        use enigo::{Direction, InputResult, Key, Keyboard};
+
+        struct FakeKeyboard {
+            events: Vec<(Key, Direction)>,
+        }
+
+        impl Keyboard for FakeKeyboard {
+            fn fast_text(&mut self, _text: &str) -> InputResult<Option<()>> {
+                Ok(None)
+            }
+
+            fn key(&mut self, key: Key, direction: Direction) -> InputResult<()> {
+                self.events.push((key, direction));
+                Ok(())
+            }
+
+            fn raw(&mut self, _keycode: u16, _direction: Direction) -> InputResult<()> {
+                Ok(())
+            }
+        }
+
+        let mut keyboard = FakeKeyboard { events: Vec::new() };
+
+        send_linux_paste_shortcut(&mut keyboard).unwrap();
 
         assert_eq!(
             keyboard.events,
